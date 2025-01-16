@@ -1,0 +1,26 @@
+# Ignore Python files
+*.pyc
+__pycache__/
+*.pyo
+
+# Environment variables
+.env
+
+# SQLite database
+*.db
+
+# Migrations and logs
+migrations/
+*.log
+
+# Virtual environment
+venv/
+
+# Node modules (if using npm)
+node_modules/
+
+# Ignore IDE and OS-specific files
+.DS_Store
+.idea/
+.vscode/
+

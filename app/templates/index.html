@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling App</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/app.js" defer></script>
+    <style>
+        #flashcard {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 300px;
+            height: 200px;
+            margin: 20px auto;
+            background-color: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            overflow-wrap: break-word;
+        }
+
+        #feedback {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        #typing-container button {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="leaderboard">
+        <h3>Leaderboard</h3>
+        <div id="leaderboard-content">No data yet.</div>
+    </div>
+    <div id="main-content">
+        <h1>Spelling Practice</h1>
+        <form id="spelling-form">
+            <label for="focus-sound">Focus Sound:</label>
+            <input type="text" id="focus-sound" name="focus_sound" required>
+            <label for="difficulty-level">Difficulty Level:</label>
+            <input type="number" id="difficulty-level" name="difficulty_level" min="1" max="10" value="1" required>
+            <button type="submit">Start</button>
+        </form>
+        <div id="flashcard">
+            <span id="flash-word"></span>
+            <span id="timer"></span>
+        </div>
+        <div id="typing-container" style="display: none;">
+            <label for="user-word">Type the Word:</label>
+            <input type="text" id="user-word" placeholder="Type your word here" required>
+            <button id="submit-word">Submit</button>
+            <button id="next-word" style="display: none;">Next</button>
+            <button id="stop-session">Stop</button>
+        </div>
+        <div id="feedback"></div>
+    </div>
+</body>
+</html>
