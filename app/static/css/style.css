@@ -206,7 +206,7 @@ body {
     margin-bottom: 8px;
 }
 
-/* Ensure long words fit within the flashcard */
+/* For long words fit within the flashcard */
 #flash-word {
     display: inline-block;
     max-width: 100%;
