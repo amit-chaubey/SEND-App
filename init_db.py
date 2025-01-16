@@ -1,5 +1,5 @@
 from app import create_app, db
-from app.models import Word  # Ensure you import all your models
+from app.models import Word  # Ensure to upload all the  models
 
 app = create_app()
 
