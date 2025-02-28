@@ -1,56 +1,47 @@
-import openai
-import os
-
-
 from openai import OpenAI
 import os
+from dotenv import load_dotenv
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Load environment variables
+load_dotenv()
 
-from openai import OpenAI
-import os
+api_key = os.getenv('OPENAI_API_KEY')
+if not api_key:
+    print("WARNING: No OpenAI API key found!")
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-from openai import OpenAI
-import os
+# Initialize OpenAI client with API key
+client = OpenAI(api_key=api_key)
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-def fetch_word_from_gpt(focus_sound, difficulty_level):
-    """
-    Fetch a word containing the specified focus_sound and for the given difficulty_level using OpenAI GPT.
-    """
+def fetch_word_from_gpt(focus_sound, difficulty_level=1, recent_words=None):
+    if not api_key:
+        print("No OpenAI API key found, using fallback words")
+        return None
+        
+    print(f"GPT Service: Fetching word for sound '{focus_sound}'")
+    recent_words = recent_words or []
+    
     try:
-        print(f"Fetching word with focus_sound: {focus_sound}, difficulty_level: {difficulty_level}")
-
-        # Call OpenAI's chat completions API
-        completion = client.chat.completions.create(
-            model="gpt-4o",  # Replace with your correct model (e.g., gpt-4)
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
                 {
-                    "role": "developer",
-                    "content": "You are a helpful assistant that generates single words containing specific sounds.",
+                    "role": "system", 
+                    "content": f"You are a word generator. Generate ONE simple word containing the '{focus_sound}' sound. Respond with ONLY the word, no punctuation or explanation."
                 },
                 {
-                    "role": "user",
-                    "content": f"Give me a word containing the sound '{focus_sound}' at difficulty level {difficulty_level}.",
-                },
+                    "role": "user", 
+                    "content": f"Give me a word with '{focus_sound}' sound. Don't use: {', '.join(recent_words)}"
+                }
             ],
+            max_tokens=10,
+            temperature=0.7
         )
-
-        # Access the message content properly
-        word = completion.choices[0].message.content.strip()
-        print(f"GPT Response: {word}")
+        word = response.choices[0].message.content.strip().lower().rstrip('.,!?')
+        if focus_sound not in word:
+            print(f"Generated word '{word}' doesn't contain '{focus_sound}', skipping")
+            return None
+        print(f"GPT Service: Generated word '{word}'")
         return word
-
     except Exception as e:
-        # Handle errors gracefully
-        print(f"Error in fetch_word_from_gpt: {e}")
-        return None
-
-
-
-print("OPENAI_API_KEY:", os.getenv("OPENAI_API_KEY"))
+        print(f"GPT Service Error: {str(e)}")
+        return None 

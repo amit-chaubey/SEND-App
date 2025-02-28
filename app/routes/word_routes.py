@@ -1,49 +1,65 @@
 from flask import Blueprint, request, jsonify
-from app.models import Word
-from app import db
 from app.services.gpt_service import fetch_word_from_gpt
+from flask_cors import cross_origin
+from functools import wraps, lru_cache
+import time
 
 word_blueprint = Blueprint('word', __name__)
 
-# In word route (Flask)
-import re
+# Simple rate limiting with per-sound tracking
+RATE_LIMIT = {}
+RATE_LIMIT_PERIOD = 0.5
 
-@word_blueprint.route('/', methods=['POST'])
-def get_word():
-    data = request.json
-    focus_sound = data.get('focus_sound')
-    difficulty_level = data.get('difficulty_level', 1)
+def rate_limit(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        ip = request.remote_addr
+        sound = request.args.get('sound', '')
+        key = f"{ip}:{sound}"
+        current_time = time.time()
+        
+        if key in RATE_LIMIT:
+            last_request_time = RATE_LIMIT[key]
+            if current_time - last_request_time < RATE_LIMIT_PERIOD:
+                time.sleep(RATE_LIMIT_PERIOD - (current_time - last_request_time))
+        
+        RATE_LIMIT[key] = current_time
+        return f(*args, **kwargs)
+    return decorated_function
 
-    print(f"Fetching word with focus_sound: {focus_sound}, difficulty_level: {difficulty_level}")
+@word_blueprint.route('/words-by-sound', methods=['GET', 'OPTIONS'])
+@cross_origin()
+@rate_limit
+def get_words_by_sound():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    sound = request.args.get('sound')
+    if not sound:
+        return jsonify({'error': 'Sound parameter is required'}), 400
     
-    try:
-        gpt_response = fetch_word_from_gpt(focus_sound, difficulty_level)
-        print(f"GPT Response: {gpt_response}")
+    count = int(request.args.get('count', default=50))
+    
+    # Fallback words dictionary - moved to top for immediate access
+    fallback_words = {
+        'th': ['think', 'three', 'thumb', 'thrill', 'thunder', 'thank', 'thick', 'thin', 'throw', 'theme'],
+        'sh': ['ship', 'wish', 'shop', 'shine', 'shower', 'shell', 'share', 'shoe', 'show', 'shut'],
+        'ch': ['chair', 'watch', 'church', 'cheese', 'chicken', 'child', 'chest', 'beach', 'teach', 'lunch'],
+        'ph': ['phone', 'graph', 'photo', 'phrase', 'dolphin', 'elephant', 'nephew', 'physics', 'alphabet', 'pharmacy'],
+        'wh': ['what', 'when', 'where', 'which', 'whale', 'wheel', 'white', 'while', 'whip', 'why'],
+        'ng': ['sing', 'ring', 'king', 'strong', 'wrong', 'long', 'young', 'bring', 'wing', 'song']
+    }
 
-        # Sanitize the response to extract the word
-        word_match = re.search(r'"(.*?)"', gpt_response)  # Extract word inside double quotes
-        if word_match:
-            word = word_match.group(1).strip().lower()
-        else:
-            word = gpt_response.strip().lower()  # Fallback in case no quotes are found
+    # If sound exists in fallback words, return those immediately
+    if sound in fallback_words:
+        return jsonify({'words': fallback_words[sound][:count]})
+    
+    return jsonify({'error': f'No words found for sound "{sound}"'}), 404
 
-        if word:
-            return jsonify({"word": word}), 200
-        else:
-            return jsonify({"error": "Failed to extract word from GPT response"}), 500
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+@word_blueprint.route('/health', methods=['GET'])
+def health_check():
+    return {"status": "healthy"}, 200
 
-
-
-def sanitize_openai_response(response):
-    """
-    Extract the core word from the OpenAI response.
-    Example: 'The word "fish" contains...' -> 'fish'
-    """
-    import re
-    match = re.search(r'"\b(\w+)\b"', response)  # Look for word inside quotes
-    if match:
-        return match.group(1).lower()  # Return the word in lowercase
-    return response.strip().lower()
+@word_blueprint.route('/test', methods=['GET'])
+def test():
+    return jsonify({"message": "API is working"}), 200

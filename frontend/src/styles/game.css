@@ -1,0 +1,26 @@
+.timer-container {
+  margin-bottom: 16px;
+}
+
+.word-card {
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.word-card.correct {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.word-card.incorrect {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.feedback-animation {
+  animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+} 
