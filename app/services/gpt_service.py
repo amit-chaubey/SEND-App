@@ -10,7 +10,10 @@ if not api_key:
     print("WARNING: No OpenAI API key found!")
 
 # Initialize OpenAI client with API key
-client = OpenAI(api_key=api_key)
+client = OpenAI(
+    api_key=api_key,
+    http_client=None  # This ensures we don't use any custom HTTP client
+)
 
 def fetch_word_from_gpt(focus_sound, difficulty_level=1, recent_words=None):
     if not api_key:
