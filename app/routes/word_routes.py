@@ -1,10 +1,19 @@
 from flask import Blueprint, request, jsonify
-from app.services.gpt_service import fetch_word_from_gpt
 from flask_cors import cross_origin
-from functools import wraps, lru_cache
+from functools import wraps
 import time
 
 word_blueprint = Blueprint('word', __name__)
+
+# Fallback words dictionary - comprehensive list for each sound
+FALLBACK_WORDS = {
+    'th': ['think', 'three', 'thumb', 'thrill', 'thunder', 'thank', 'thick', 'thin', 'throw', 'theme'],
+    'sh': ['ship', 'wish', 'shop', 'shine', 'shower', 'shell', 'share', 'shoe', 'show', 'shut'],
+    'ch': ['chair', 'watch', 'church', 'cheese', 'chicken', 'child', 'chest', 'beach', 'teach', 'lunch'],
+    'ph': ['phone', 'graph', 'photo', 'phrase', 'dolphin', 'elephant', 'nephew', 'physics', 'alphabet', 'pharmacy'],
+    'wh': ['what', 'when', 'where', 'which', 'whale', 'wheel', 'white', 'while', 'whip', 'why'],
+    'ng': ['sing', 'ring', 'king', 'strong', 'wrong', 'long', 'young', 'bring', 'wing', 'song']
+}
 
 # Simple rate limiting with per-sound tracking
 RATE_LIMIT = {}
@@ -34,25 +43,16 @@ def get_words_by_sound():
     if request.method == 'OPTIONS':
         return '', 200
         
-    sound = request.args.get('sound')
+    sound = request.args.get('sound', '').lower()
     if not sound:
         return jsonify({'error': 'Sound parameter is required'}), 400
     
     count = int(request.args.get('count', default=50))
     
-    # Fallback words dictionary - moved to top for immediate access
-    fallback_words = {
-        'th': ['think', 'three', 'thumb', 'thrill', 'thunder', 'thank', 'thick', 'thin', 'throw', 'theme'],
-        'sh': ['ship', 'wish', 'shop', 'shine', 'shower', 'shell', 'share', 'shoe', 'show', 'shut'],
-        'ch': ['chair', 'watch', 'church', 'cheese', 'chicken', 'child', 'chest', 'beach', 'teach', 'lunch'],
-        'ph': ['phone', 'graph', 'photo', 'phrase', 'dolphin', 'elephant', 'nephew', 'physics', 'alphabet', 'pharmacy'],
-        'wh': ['what', 'when', 'where', 'which', 'whale', 'wheel', 'white', 'while', 'whip', 'why'],
-        'ng': ['sing', 'ring', 'king', 'strong', 'wrong', 'long', 'young', 'bring', 'wing', 'song']
-    }
-
-    # If sound exists in fallback words, return those immediately
-    if sound in fallback_words:
-        return jsonify({'words': fallback_words[sound][:count]})
+    # Always use fallback words
+    if sound in FALLBACK_WORDS:
+        words = FALLBACK_WORDS[sound]
+        return jsonify({'words': words[:count]})
     
     return jsonify({'error': f'No words found for sound "{sound}"'}), 404
 

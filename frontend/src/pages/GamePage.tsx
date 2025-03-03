@@ -77,7 +77,14 @@ const GamePage: React.FC = () => {
           }
         });
         
+        console.log('API Response:', response.data);
         const words = response.data.words;
+        
+        if (!words || words.length === 0) {
+          throw new Error('No words received from API');
+        }
+        
+        console.log('Received words:', words);
         
         // Categorize words by difficulty (length is a simple proxy for difficulty)
         const easy: string[] = [];
@@ -94,13 +101,18 @@ const GamePage: React.FC = () => {
           }
         });
         
-        setWordsByDifficulty({
+        console.log('Categorized words:', { easy, medium, hard });
+        
+        const categorizedWords = {
           'Easy': easy.length >= 10 ? easy : [...easy, ...medium].slice(0, 10),
           'Medium': medium.length >= 10 ? medium : [...medium, ...hard, ...easy].slice(0, 10),
           'Hard': hard.length >= 10 ? hard : [...hard, ...medium].slice(0, 10)
-        });
+        };
+        
+        console.log('Final categorized words:', categorizedWords);
+        setWordsByDifficulty(categorizedWords);
       } catch (error) {
-        console.error('Error details:', error);
+        console.error('Error fetching words:', error);
         // Use fallback words
         const fallbackWords = wordsBySounds[focusSound] || [];
         console.log('Using fallback words:', fallbackWords);
