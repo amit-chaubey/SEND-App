@@ -3,14 +3,16 @@ services:
     name: spelling-app
     env: python
     buildCommand: |
+      # Install Python dependencies
       pip install -r requirements.txt
-      cd frontend && npm install && npm run build && cd ..
+      # Install and build frontend
+      cd frontend && npm install && REACT_APP_API_URL="" npm run build && cd ..
     startCommand: gunicorn run:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
-      - key: FLASK_ENV
-        value: production
+      - key: FLASK_DEBUG
+        value: "0"
       - key: NODE_VERSION
         value: 18.0.0
     healthCheckPath: /api/health 
