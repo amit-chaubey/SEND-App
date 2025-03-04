@@ -17,9 +17,14 @@ def create_app():
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        if path != "" and os.path.exists(app.static_folder + '/' + path):
-            return send_from_directory(app.static_folder, path)
-        else:
+        try:
+            if path.startswith('api/'):
+                return app.send_static_file('index.html')
+            if path != "" and os.path.exists(app.static_folder + '/' + path):
+                return send_from_directory(app.static_folder, path)
             return send_from_directory(app.static_folder, 'index.html')
+        except Exception as e:
+            print(f"Error serving static files: {str(e)}")
+            return f"Error serving application: {str(e)}", 500
 
-    return app 
+    return app

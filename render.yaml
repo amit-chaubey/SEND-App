@@ -6,7 +6,7 @@ services:
       # Install Python dependencies
       pip install -r requirements.txt
       # Install and build frontend
-      cd frontend && npm install && REACT_APP_API_URL="" npm run build && cd ..
+      cd frontend && npm install && npm run build && cd ..
     startCommand: gunicorn run:app
     envVars:
       - key: PYTHON_VERSION
@@ -15,4 +15,7 @@ services:
         value: "0"
       - key: NODE_VERSION
         value: 18.0.0
-    healthCheckPath: /api/health 
+      - key: RENDER_EXTERNAL_URL
+        sync: true
+    staticPublishPath: ./frontend/build
+    healthCheckPath: /api/health
