@@ -5,15 +5,21 @@ services:
     buildCommand: |
       # Install Python dependencies
       pip install -r requirements.txt
-      # Build frontend
+      
+      # Build frontend with explicit path
       cd frontend && \
       npm install --legacy-peer-deps && \
-      npm run build && \
-      cd .. && \
-      # Verify build directory
+      REACT_APP_API_URL=/api npm run build && \
+      
+      # Debug build output
       echo "Build directory contents:" && \
-      ls -la frontend/build/
-    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
+      ls -la build/ && \
+      
+      # Ensure build directory exists and copy files
+      mkdir -p ../frontend/build && \
+      cp -r build/* ../frontend/build/ && \
+      cd ..
+    startCommand: gunicorn run:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120 --log-level debug
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
@@ -22,7 +28,7 @@ services:
       - key: FLASK_DEBUG
         value: "0"
       - key: PORT
-        value: "10000"
+        value: "8000"  # Changed to port 8000
       - key: REACT_APP_API_URL
         value: "/api"
     staticPublishPath: ./frontend/build
