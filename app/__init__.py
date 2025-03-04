@@ -3,19 +3,20 @@ from flask_cors import CORS
 import os
 
 def create_app():
-    # Get the absolute path for static files
+    # First define the static folder path
     static_folder = '/opt/render/project/src/frontend/build'
     if not os.path.exists(static_folder):
         static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build'))
 
-    # Create Flask app first
+    # Create Flask app instance
     app = Flask(__name__, 
                 static_folder=static_folder,
                 static_url_path='')
     CORS(app)
-    
-    # Now we can use app.logger
+
+    # Now we can safely use app.logger
     app.logger.info(f"Using static folder: {static_folder}")
+    app.logger.info(f"Static folder exists: {os.path.exists(static_folder)}")
 
     # Import and register blueprints
     from app.routes.word_routes import word_blueprint
@@ -30,9 +31,12 @@ def create_app():
             
             if path.startswith('api/'):
                 return {"error": "Not found"}, 404
-            
-            # List directory contents for debugging
-            app.logger.info(f"Directory contents: {os.listdir(app.static_folder)}")
+
+            # Debug: List directory contents
+            try:
+                app.logger.info(f"Directory contents: {os.listdir(app.static_folder)}")
+            except Exception as e:
+                app.logger.error(f"Error listing directory: {str(e)}")
             
             if path and os.path.exists(os.path.join(app.static_folder, path)):
                 return send_from_directory(app.static_folder, path)
