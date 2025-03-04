@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/SEND-App/static/css/main.e97dbb59.css",
+    "main.js": "/SEND-App/static/js/main.be78df25.js",
+    "index.html": "/SEND-App/index.html",
+    "main.e97dbb59.css.map": "/SEND-App/static/css/main.e97dbb59.css.map",
+    "main.be78df25.js.map": "/SEND-App/static/js/main.be78df25.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e97dbb59.css",
+    "static/js/main.be78df25.js"
+  ]
+}
