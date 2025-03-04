@@ -23,8 +23,6 @@ services:
         value: "0"
       - key: PORT
         value: "10000"
-      - key: DATABASE_URI
-        sync: false  # Add this in Render dashboard
       - key: REACT_APP_API_URL
         value: "/api"
     staticPublishPath: ./frontend/build
