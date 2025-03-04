@@ -3,15 +3,19 @@ from flask_cors import CORS
 import os
 
 def create_app():
-    # First define the static folder path
+    """Create and configure the Flask application."""
     static_folder = '/opt/render/project/src/frontend/build'
     if not os.path.exists(static_folder):
-        static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build'))
+        static_folder = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build')
+        )
 
     # Create Flask app instance
-    app = Flask(__name__, 
-                static_folder=static_folder,
-                static_url_path='')
+    app = Flask(
+        __name__,
+        static_folder=static_folder,
+        static_url_path=''
+    )
     CORS(app)
 
     # Now we can safely use app.logger
@@ -27,26 +31,30 @@ def create_app():
     def serve(path):
         try:
             app.logger.info(f"Serving path: {path}")
-            app.logger.info(f"Static folder exists: {os.path.exists(app.static_folder)}")
-            
+            app.logger.info(
+                f"Static folder exists: {os.path.exists(app.static_folder)}"
+            )
+
             if path.startswith('api/'):
                 return {"error": "Not found"}, 404
 
             # Debug: List directory contents
             try:
-                app.logger.info(f"Directory contents: {os.listdir(app.static_folder)}")
+                app.logger.info(
+                    f"Directory contents: {os.listdir(app.static_folder)}"
+                )
             except Exception as e:
                 app.logger.error(f"Error listing directory: {str(e)}")
-            
+
             if path and os.path.exists(os.path.join(app.static_folder, path)):
                 return send_from_directory(app.static_folder, path)
-            
+
             index_path = os.path.join(app.static_folder, 'index.html')
             if os.path.exists(index_path):
                 return send_from_directory(app.static_folder, 'index.html')
-            else:
-                app.logger.error(f"index.html not found in {app.static_folder}")
-                return {"error": "Application not properly built"}, 500
+
+            app.logger.error(f"index.html not found in {app.static_folder}")
+            return {"error": "Application not properly built"}, 500
 
         except Exception as e:
             app.logger.error(f"Error serving static files: {str(e)}")
