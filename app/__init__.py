@@ -3,18 +3,19 @@ from flask_cors import CORS
 import os
 
 def create_app():
-    # Use absolute path for Render deployment
+    # Get the absolute path for static files
     static_folder = '/opt/render/project/src/frontend/build'
     if not os.path.exists(static_folder):
-        # Fallback to local development path
         static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build'))
-    
-    app.logger.info(f"Using static folder: {static_folder}")
-    
+
+    # Create Flask app first
     app = Flask(__name__, 
                 static_folder=static_folder,
                 static_url_path='')
     CORS(app)
+    
+    # Now we can use app.logger
+    app.logger.info(f"Using static folder: {static_folder}")
 
     # Import and register blueprints
     from app.routes.word_routes import word_blueprint
