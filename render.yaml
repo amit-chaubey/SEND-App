@@ -5,14 +5,14 @@ services:
     buildCommand: |
       # Install Python dependencies
       pip install -r requirements.txt
-      # Build frontend with explicit path
+      # Build frontend
       cd frontend && \
       npm install --legacy-peer-deps && \
-      REACT_APP_API_URL=/api npm run build && \
+      npm run build && \
       cd .. && \
-      # Verify build directory exists
-      mkdir -p frontend/build && \
-      ls -la frontend/build
+      # Verify build directory
+      echo "Build directory contents:" && \
+      ls -la frontend/build/
     startCommand: gunicorn run:app --bind 0.0.0.0:$PORT --workers 4 --timeout 120
     envVars:
       - key: PYTHON_VERSION
@@ -23,6 +23,10 @@ services:
         value: "0"
       - key: PORT
         value: "10000"
+      - key: DATABASE_URI
+        sync: false  # Add this in Render dashboard
+      - key: REACT_APP_API_URL
+        value: "/api"
     staticPublishPath: ./frontend/build
     routes:
       - type: rewrite
