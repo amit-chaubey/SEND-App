@@ -62,65 +62,39 @@ const GamePage: React.FC = () => {
   // Fetch words for the selected sound and categorize by difficulty
   useEffect(() => {
     const fetchWords = async () => {
-      // If already loading, skip
       if (loadingRef.current) return;
       
       loadingRef.current = true;
       setIsLoading(true);
       
       try {
-        console.log('Fetching words for sound:', focusSound);
-        const response = await axios.get(`${API_URL}/api/words-by-sound?sound=${focusSound}&count=50`, {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
+        const response = await axios.get(`/api/words-by-sound?sound=${focusSound}`);
         
-        console.log('API Response:', response.data);
-        const words = response.data.words;
-        
-        if (!words || words.length === 0) {
-          throw new Error('No words received from API');
-        }
-        
-        console.log('Received words:', words);
-        
-        // Categorize words by difficulty (length is a simple proxy for difficulty)
-        const easy: string[] = [];
-        const medium: string[] = [];
-        const hard: string[] = [];
-        
-        words.forEach((word: string) => {
-          if (word.length <= 4) {
-            easy.push(word);
-          } else if (word.length <= 7) {
-            medium.push(word);
+        if (response.data.words) {
+          // Check if response is already categorized
+          if (response.data.words.Easy) {
+            setWordsByDifficulty(response.data.words);
           } else {
-            hard.push(word);
+            // Fallback to old categorization if needed
+            const words = response.data.words;
+            const categorizedWords = {
+              'Easy': words.filter((w: string) => w.length <= 5),
+              'Medium': words.filter((w: string) => w.length > 5 && w.length <= 7),
+              'Hard': words.filter((w: string) => w.length > 7)
+            };
+            setWordsByDifficulty(categorizedWords);
           }
-        });
-        
-        console.log('Categorized words:', { easy, medium, hard });
-        
-        const categorizedWords = {
-          'Easy': easy.length >= 10 ? easy : [...easy, ...medium].slice(0, 10),
-          'Medium': medium.length >= 10 ? medium : [...medium, ...hard, ...easy].slice(0, 10),
-          'Hard': hard.length >= 10 ? hard : [...hard, ...medium].slice(0, 10)
-        };
-        
-        console.log('Final categorized words:', categorizedWords);
-        setWordsByDifficulty(categorizedWords);
+        }
       } catch (error) {
         console.error('Error fetching words:', error);
-        // Use fallback words
-        const fallbackWords = wordsBySounds[focusSound] || [];
-        console.log('Using fallback words:', fallbackWords);
-        setWordsByDifficulty({
-          'Easy': fallbackWords.filter(w => w.length <= 4),
-          'Medium': fallbackWords.filter(w => w.length > 4 && w.length <= 7),
-          'Hard': fallbackWords.filter(w => w.length > 7)
-        });
+        // Use fallback words on error
+        const words = wordsBySounds[focusSound] || [];
+        const categorizedWords = {
+          'Easy': words.filter(w => w.length <= 5),
+          'Medium': words.filter(w => w.length > 5 && w.length <= 7),
+          'Hard': words.filter(w => w.length > 7)
+        };
+        setWordsByDifficulty(categorizedWords);
       } finally {
         setIsLoading(false);
         loadingRef.current = false;
@@ -134,7 +108,7 @@ const GamePage: React.FC = () => {
     return () => {
       loadingRef.current = false;
     };
-  }, [focusSound]);
+}, [focusSound]);
   
   // When difficulty changes, reset the game
   useEffect(() => {
@@ -455,4 +429,4 @@ const GamePage: React.FC = () => {
   );
 };
 
-export default GamePage; 
+export default GamePage;
