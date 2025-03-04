@@ -33,6 +33,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Keep build directory structure but ignore contents
+frontend/build/*
+!frontend/build/.gitkeep
+
 # IDE
 .vscode/
 .idea/
